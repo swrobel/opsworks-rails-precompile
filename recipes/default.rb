@@ -1,17 +1,13 @@
 node[:deploy].each do |application, deploy|
-  Chef::Log.info("Symlinking #{release_path}/public/assets to #{new_resource.deploy_to}/shared/assets")
+  rails_env = deploy[:rails_env]
+  current_path = deploy[:current_path]
 
-  link "#{release_path}/public/assets" do
-    to "#{new_resource.deploy_to}/shared/assets"
-  end
-
-  rails_env = new_resource.environment['RAILS_ENV']
-
-  Chef::Log.info('Precompiling rails assets')
+  Chef::Log.info("Precompiling Rails assets with environment #{rails_env}")
 
   execute 'rake assets:precompile' do
-    cwd release_path
+    cwd current_path
+    user 'deploy'
     command 'bundle exec rake assets:precompile'
-    environment 'RAILS_ENV ' => rails_env
+    environment 'RAILS_ENV' => rails_env
   end
 end
